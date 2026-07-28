@@ -71,14 +71,25 @@ def agent_reply(user_id: str, conversation_id: str, user_msg: str) -> str:
     context_block = ""
     if routing.get("needs_planning") and routing.get("recipe") and routing.get("store"):
         try:
+            from agent import compute_estimated_basket, fit_basket_to_budget
+            budget = 25.00
+            for f in facts:
+                if "budget" in f.lower():
+                    import re
+                    match = re.search(r"\$?(\d+(?:\.\d+)?)", f)
+                    if match:
+                        budget = float(match.group(1))
+                        break
+
             context = gather_context(routing["recipe"], routing["store"])
             basket = compute_estimated_basket(context)
+            fitted = fit_basket_to_budget(basket, budget)
             context_block = (
-                f"\n\n[A pre-computed basket has already been calculated in Python. The "
-                f"estimated_total below is EXACT and FINAL - reference it directly, do not "
-                f"recompute or add prices yourself. If suggesting cuts to save money, state the "
-                f"new total as (estimated_total - removed item prices) and show that subtraction.]\n"
-                f"Computed basket:\n{json.dumps(basket, indent=2, default=str)}\n\n"
+                f"\n\n[A FINAL basket decision has already been computed in Python using an "
+                f"assumed budget of ${budget:.2f} based on remembered facts. The final_items, "
+                f"final_total, removed_optional, and over_by fields are EXACT and FINAL. Do not "
+                f"recompute or do any arithmetic yourself. State final_total exactly once.]\n"
+                f"Final basket decision:\n{json.dumps(fitted, indent=2, default=str)}\n\n"
                 f"Full recipe/store/substitute data:\n{json.dumps(context, indent=2, default=str)}"
             )
         except ValueError as e:

@@ -150,35 +150,76 @@ def compute_estimated_basket(context: dict) -> dict:
     }
 
 
+def fit_basket_to_budget(basket: dict, budget: float) -> dict:
+    """Deterministically decide what to cut (if anything) to fit the budget.
+    Cuts all optional items first if needed; reports honestly if even essentials alone exceed budget."""
+    items = basket["line_items"]
+    essential_items = [i for i in items if i["essential"]]
+    optional_items = [i for i in items if not i["essential"]]
+
+    essential_total = round(sum(i["price"] for i in essential_items), 2)
+    full_total = round(sum(i["price"] for i in items), 2)
+
+    if full_total <= budget:
+        return {
+            "final_items": items,
+            "final_total": full_total,
+            "removed_optional": [],
+            "fits_budget": True,
+            "over_by": 0.0,
+        }
+
+    if essential_total <= budget:
+        return {
+            "final_items": essential_items,
+            "final_total": essential_total,
+            "removed_optional": [{"ingredient": i["ingredient"], "price": i["price"]} for i in optional_items],
+            "fits_budget": True,
+            "over_by": 0.0,
+        }
+
+    return {
+        "final_items": essential_items,
+        "final_total": essential_total,
+        "removed_optional": [{"ingredient": i["ingredient"], "price": i["price"]} for i in optional_items],
+        "fits_budget": False,
+        "over_by": round(essential_total - budget, 2),
+    }
+
+
 def plan_shopping_trip(recipe_name: str, store_name: str, budget: float) -> str:
     """Gather context from the database, then have Claude reason over it and produce a plan."""
     context = gather_context(recipe_name, store_name)
     basket = compute_estimated_basket(context)
+    fitted = fit_basket_to_budget(basket, budget)
 
     system_prompt = (
         "You are a warm, knowledgeable cooking assistant helping African students abroad "
         "shop for traditional meals. You are given structured data about a recipe, what a "
-        "chosen store stocks, what is missing, ranked substitutes, and other stores that "
-        "carry the missing items. Your job:\n"
-        "1. Build a shopping list for the chosen store with prices, staying within budget.\n"
-        "2. For missing ingredients, recommend the best available substitute at this store, "
-        "honestly noting quality tradeoffs (a 2/5 substitute deserves a warning, a 5/5 is easy).\n"
-        "3. If an essential ingredient has no good substitute here, say which other store carries "
-        "the real thing and the price difference.\n"
-        "4. Non-essential missing ingredients can simply be skipped; say so.\n"
-        "5. End with an estimated total and one short encouraging line about the dish.\n"
-        "Be concise and practical. Use plain text, no markdown formatting."
+        "chosen store stocks, what is missing, ranked substitutes, other stores that carry "
+        "missing items, and a FINAL basket decision that has already been computed in Python.\n\n"
+        "CRITICAL: The final_items, final_total, removed_optional, and over_by fields are EXACT "
+        "and FINAL. Do not recompute them, do not do any addition or subtraction yourself, do not "
+        "mention any number that is not already given to you. State final_total exactly once, "
+        "near the end. If removed_optional is non-empty, mention those items were left out to "
+        "stay in budget, but do not restate a running total after each one - there is only ONE "
+        "final total.\n\n"
+        "Your job:\n"
+        "1. Present the final shopping list with prices.\n"
+        "2. For substitutes in the list, honestly flag quality tradeoffs (a 2/5 substitute needs "
+        "a warning, a 5/5 is easy).\n"
+        "3. If fits_budget is false, say so honestly, state over_by, and suggest the specific "
+        "other-store options given in the data as alternatives.\n"
+        "4. Mention removed_optional items once, briefly.\n"
+        "5. End with the final total (already given, stated once) and one short encouraging line.\n"
+        "Be concise and practical. Plain text only, no markdown."
     )
 
     user_message = (
         f"Budget: ${budget:.2f}\n"
         f"Store: {store_name}\n"
-        f"A pre-computed basket has already been calculated in Python. The estimated_total below "
-        f"is EXACT and FINAL - do not recompute it, do not add up prices yourself, just reference "
-        f"this number when discussing cost. If the user needs to save money, suggest removing "
-        f"specific line items and state the new total as (estimated_total - removed item prices), "
-        f"showing that subtraction clearly.\n"
-        f"Computed basket:\n{json.dumps(basket, indent=2, default=str)}\n\n"
+        f"Final basket decision (already computed, do not alter):\n"
+        f"{json.dumps(fitted, indent=2, default=str)}\n\n"
         f"Full recipe/store/substitute data for context:\n{json.dumps(context, indent=2, default=str)}"
     )
 
@@ -197,7 +238,6 @@ def plan_shopping_trip(recipe_name: str, store_name: str, budget: float) -> str:
     )
     result = json.loads(response["body"].read())
     return "".join(block["text"] for block in result["content"] if block["type"] == "text")
-
 
 if __name__ == "__main__":
     plan = plan_shopping_trip("Garden Egg Stew", "Publix - Riverside", 25.00)
