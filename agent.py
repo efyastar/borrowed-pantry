@@ -6,7 +6,6 @@ from embeddings import get_embedding, vector_to_pg
 
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
-# We will confirm the exact model ID together before running the Claude step.
 CLAUDE_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 
 
@@ -14,7 +13,6 @@ def gather_context(recipe_name: str, store_name: str) -> dict:
     """Collect everything the agent needs to reason: recipe, inventory matches, gaps, substitutes."""
     with get_connection() as conn:
         with conn.cursor() as cur:
-            # 1. The recipe and its ingredients
             cur.execute(
                 """
                 SELECT r.id, r.name, r.description, i.id, i.name, ri.quantity, ri.is_essential
@@ -38,7 +36,6 @@ def gather_context(recipe_name: str, store_name: str) -> dict:
                     "essential": essential,
                 })
 
-            # 2. What the chosen store has, for each needed ingredient
             cur.execute(
                 """
                 SELECT i.name, inv.price, inv.unit, inv.in_stock
@@ -52,7 +49,6 @@ def gather_context(recipe_name: str, store_name: str) -> dict:
             inventory = {name: {"price": float(price), "unit": unit, "in_stock": in_stock}
                          for name, price, unit, in_stock in cur.fetchall()}
 
-            # 3. For each recipe ingredient the store lacks, find substitutes
             available, missing = [], []
             for ing in recipe["ingredients"]:
                 stock = inventory.get(ing["name"])
@@ -83,7 +79,6 @@ def gather_context(recipe_name: str, store_name: str) -> dict:
                         })
                     missing.append({**ing, "substitutes": subs})
 
-            # 4. Other stores that carry the missing originals (cross-store tip)
             other_store_options = []
             for ing in missing:
                 cur.execute(
@@ -113,9 +108,52 @@ def gather_context(recipe_name: str, store_name: str) -> dict:
             }
 
 
+def compute_estimated_basket(context: dict) -> dict:
+    """Deterministically compute a suggested basket and total from the gathered context.
+    Picks the best in-store substitute for each missing essential ingredient."""
+    line_items = []
+    total = 0.0
+    skipped_optional = []
+    unavailable_essentials = []
+
+    for item in context["available_here"]:
+        line_items.append({
+            "ingredient": item["name"],
+            "using": item["name"],
+            "price": item["price"],
+            "essential": item["essential"],
+        })
+        total += item["price"]
+
+    for item in context["missing_here"]:
+        in_store_subs = [s for s in item["substitutes"] if s["at_this_store"] and s["price"] is not None]
+        best_sub = max(in_store_subs, key=lambda s: s["quality_score"]) if in_store_subs else None
+
+        if best_sub:
+            line_items.append({
+                "ingredient": item["name"],
+                "using": f"{best_sub['name']} (substitute, quality {best_sub['quality_score']}/5)",
+                "price": best_sub["price"],
+                "essential": item["essential"],
+            })
+            total += best_sub["price"]
+        elif item["essential"]:
+            unavailable_essentials.append(item["name"])
+        else:
+            skipped_optional.append(item["name"])
+
+    return {
+        "line_items": line_items,
+        "estimated_total": round(total, 2),
+        "unavailable_essentials": unavailable_essentials,
+        "skipped_optional_by_default": skipped_optional,
+    }
+
+
 def plan_shopping_trip(recipe_name: str, store_name: str, budget: float) -> str:
     """Gather context from the database, then have Claude reason over it and produce a plan."""
     context = gather_context(recipe_name, store_name)
+    basket = compute_estimated_basket(context)
 
     system_prompt = (
         "You are a warm, knowledgeable cooking assistant helping African students abroad "
@@ -135,7 +173,13 @@ def plan_shopping_trip(recipe_name: str, store_name: str, budget: float) -> str:
     user_message = (
         f"Budget: ${budget:.2f}\n"
         f"Store: {store_name}\n"
-        f"Recipe data:\n{json.dumps(context, indent=2, default=str)}"
+        f"A pre-computed basket has already been calculated in Python. The estimated_total below "
+        f"is EXACT and FINAL - do not recompute it, do not add up prices yourself, just reference "
+        f"this number when discussing cost. If the user needs to save money, suggest removing "
+        f"specific line items and state the new total as (estimated_total - removed item prices), "
+        f"showing that subtraction clearly.\n"
+        f"Computed basket:\n{json.dumps(basket, indent=2, default=str)}\n\n"
+        f"Full recipe/store/substitute data for context:\n{json.dumps(context, indent=2, default=str)}"
     )
 
     response = bedrock.invoke_model(

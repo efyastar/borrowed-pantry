@@ -2,7 +2,7 @@
 import json
 import boto3
 from db import get_connection
-from agent import gather_context
+from agent import gather_context, compute_estimated_basket
 from memory import (
     get_or_create_user, start_conversation, save_message,
     get_conversation_history, get_user_facts, extract_facts,
@@ -30,7 +30,6 @@ def agent_reply(user_id: str, conversation_id: str, user_msg: str) -> str:
     history = get_conversation_history(conversation_id)
     catalog = get_catalog_summary()
 
-    # First, a lightweight routing call: does this message need full recipe/store data?
     routing_prompt = (
         f"{catalog}\n"
         f"User message: \"{user_msg}\"\n"
@@ -61,7 +60,6 @@ def agent_reply(user_id: str, conversation_id: str, user_msg: str) -> str:
     except json.JSONDecodeError:
         routing = {"needs_planning": False}
 
-    # Build the system prompt with memory baked in
     system_prompt = (
         "You are a warm, knowledgeable cooking assistant helping African students abroad shop for "
         "and cook traditional meals on a budget. Be concise and practical. Plain text only, no markdown.\n\n"
@@ -70,14 +68,18 @@ def agent_reply(user_id: str, conversation_id: str, user_msg: str) -> str:
         + ("\n".join(facts) if facts else "(none yet)")
     )
 
-    # If planning is needed, fetch the full context and attach it
     context_block = ""
     if routing.get("needs_planning") and routing.get("recipe") and routing.get("store"):
         try:
             context = gather_context(routing["recipe"], routing["store"])
+            basket = compute_estimated_basket(context)
             context_block = (
-                f"\n\n[Store and recipe data for this request:]\n"
-                f"{json.dumps(context, indent=2, default=str)}"
+                f"\n\n[A pre-computed basket has already been calculated in Python. The "
+                f"estimated_total below is EXACT and FINAL - reference it directly, do not "
+                f"recompute or add prices yourself. If suggesting cuts to save money, state the "
+                f"new total as (estimated_total - removed item prices) and show that subtraction.]\n"
+                f"Computed basket:\n{json.dumps(basket, indent=2, default=str)}\n\n"
+                f"Full recipe/store/substitute data:\n{json.dumps(context, indent=2, default=str)}"
             )
         except ValueError as e:
             context_block = f"\n\n[Note: {e}]"
