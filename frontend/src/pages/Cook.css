@@ -1,0 +1,86 @@
+.cook-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--secondary);
+  margin: -8px 0 0;
+}
+
+.recipe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.recipe-card {
+  background: var(--surface);
+  border: 1px solid var(--secondary);
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recipe-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.recipe-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.recipe-cuisine {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--amber);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.recipe-description {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.recipe-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--secondary);
+}
+
+.recipe-video-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.recipe-plan-button {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  background: var(--primary);
+  color: var(--surface);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+}

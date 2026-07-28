@@ -1,0 +1,74 @@
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+}
+
+.app-header {
+  padding: 32px 0 20px;
+  border-bottom: 1px solid var(--secondary);
+}
+
+.app-header h1 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--primary);
+}
+
+.tagline {
+  font-family: var(--font-body);
+  color: var(--secondary);
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+
+.chat-panel {
+  flex: 1;
+  padding: 32px 0;
+}
+
+.empty-state {
+  color: var(--secondary);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.input-bar {
+  display: flex;
+  gap: 10px;
+  padding: 16px 0 24px;
+  border-top: 1px solid var(--secondary);
+}
+
+.input-bar input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid var(--secondary);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+.input-bar button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  background: var(--primary);
+  color: var(--surface);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.input-bar button:hover {
+  background: #8a361a;
+}

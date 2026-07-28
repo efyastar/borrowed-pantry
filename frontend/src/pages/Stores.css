@@ -1,0 +1,91 @@
+.stores-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.location-note {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.store-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.store-card {
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--secondary);
+  border-radius: 6px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.store-card-selected {
+  border-color: var(--primary);
+  border-width: 2px;
+}
+
+.store-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.store-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+
+.badge-african {
+  background: var(--sage);
+  color: var(--surface);
+}
+
+.store-address {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--secondary);
+  margin: 0;
+}
+
+.store-distance {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--amber);
+  margin: 0;
+}
+
+.selected-tag {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-top: 4px;
+}

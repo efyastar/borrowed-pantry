@@ -1,0 +1,114 @@
+.login-page {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 60px 20px;
+}
+
+.login-title {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0 0 4px;
+  text-align: center;
+}
+
+.login-tagline {
+  font-family: var(--font-body);
+  color: var(--secondary);
+  text-align: center;
+  margin: 0 0 40px;
+  font-size: 15px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+.login-form input {
+  padding: 12px 14px;
+  border: 1px solid var(--secondary);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+.login-form button[type="submit"] {
+  padding: 13px 20px;
+  border: none;
+  border-radius: 4px;
+  background: var(--primary);
+  color: var(--surface);
+  font-weight: 600;
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+.login-form button[type="submit"]:disabled {
+  opacity: 0.6;
+}
+
+.login-error {
+  color: var(--primary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.setup-intro {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+
+.dietary-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dietary-fieldset legend {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--secondary);
+  padding: 0 0 10px;
+}
+
+.dietary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 8px 14px;
+  border: 1px solid var(--secondary);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.chip-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--surface);
+}

@@ -89,6 +89,14 @@ SCHEMA_STATEMENTS = [
         source_conversation UUID REFERENCES conversations(id),
         created_at TIMESTAMPTZ DEFAULT now()
     );""",
+    """CREATE TABLE IF NOT EXISTS cooked_history (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES users(id),
+        recipe_id UUID REFERENCES recipes(id),
+        store_name STRING,
+        notes STRING,
+        cooked_at TIMESTAMPTZ DEFAULT now()
+    );""",
 ]
 
 VECTOR_INDEX_STATEMENTS = [
@@ -98,6 +106,7 @@ VECTOR_INDEX_STATEMENTS = [
 
 
 def run_schema():
+    total = len(SCHEMA_STATEMENTS)
     with get_connection() as conn:
         with conn.cursor() as cur:
             for i, stmt in enumerate(SCHEMA_STATEMENTS, 1):
@@ -105,9 +114,9 @@ def run_schema():
                 try:
                     cur.execute(stmt)
                     conn.commit()
-                    print(f"  [{i}/10] OK: {table_name}")
+                    print(f"  [{i}/{total}] OK: {table_name}")
                 except Exception as e:
-                    print(f"  [{i}/10] FAIL: {table_name}: {e}")
+                    print(f"  [{i}/{total}] FAIL: {table_name}: {e}")
                     conn.rollback()
 
             for stmt in VECTOR_INDEX_STATEMENTS:
@@ -116,7 +125,8 @@ def run_schema():
                     conn.commit()
                     print(f"  OK: vector index: {stmt[:50]}...")
                 except Exception as e:
-                    print(f"  FAIL: vector index: {e}")
+                    # Already exists is fine on re-run
+                    print(f"  SKIP/FAIL: vector index: {e}")
                     conn.rollback()
 
 
@@ -131,4 +141,4 @@ if __name__ == "__main__":
             """)
             tables = [r[0] for r in cur.fetchall()]
             print(f"Tables in database: {tables}")
-            print(f"Total: {len(tables)}/10")
+            print(f"Total: {len(tables)}/{len(SCHEMA_STATEMENTS)}")
