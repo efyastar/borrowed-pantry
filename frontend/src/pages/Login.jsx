@@ -81,7 +81,7 @@ function Login() {
   return (
     <div className="login-page">
       <h1 className="login-title">The Borrowed Pantry</h1>
-      <p className="login-tagline">African home cooking, wherever you are.</p>
+      <p className="login-tagline">Same soul, different store.</p>
 
       {step === 'identify' && (
         <form className="login-form" onSubmit={handleIdentify}>
@@ -114,7 +114,7 @@ function Login() {
 
       {step === 'setup' && (
         <form className="login-form" onSubmit={handleSetup}>
-          <p className="setup-intro">Nice to meet you, {name}. A couple quick things before we start.</p>
+          <p className="setup-intro">Hey, {name}. Two quick things, then we cook.</p>
 
           <label>
             Weekly grocery budget (optional)
@@ -129,7 +129,7 @@ function Login() {
           </label>
 
           <fieldset className="dietary-fieldset">
-            <legend>Any dietary restrictions?</legend>
+            <legend>Anything you can't eat?</legend>
             <div className="dietary-grid">
               {DIETARY_OPTIONS.map((option) => (
                 <button

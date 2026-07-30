@@ -8,9 +8,49 @@ bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 CLAUDE_MODEL_ID = "us.anthropic.claude-sonnet-4-6"
 
+ALLERGY_INGREDIENT_MAP = {
+    "shellfish allergy": ["crab", "shrimp", "prawns", "lobster"],
+    "nut allergy": ["peanut", "peanuts", "groundnut", "cashew", "almond"],
+    "dairy-free": ["milk", "butter", "cheese", "cream", "yogurt"],
+    "gluten-free": ["wheat", "flour", "bread", "pasta"],
+    "no pork": ["pork", "bacon", "ham"],
+    "no beef": ["beef", "beef chuck"],
+    "vegetarian": [
+        "goat meat", "beef chuck", "crab", "smoked mackerel",
+        "dried smoked fish", "koobi (salted tilapia)", "eggs",
+    ],
+}
 
-def gather_context(recipe_name: str, store_name: str) -> dict:
-    """Collect everything the agent needs to reason: recipe, inventory matches, gaps, substitutes."""
+
+def ingredients_triggered_by_allergies(allergies: list[str]) -> set[str]:
+    """Expand a list of dietary restriction labels (as stored on the user profile) into
+    the actual lowercased ingredient names they should force-substitute."""
+    triggered = set()
+    for allergy in allergies:
+        key = allergy.strip().lower()
+        for name in ALLERGY_INGREDIENT_MAP.get(key, []):
+            triggered.add(name.lower())
+    return triggered
+
+def gather_context(
+    recipe_name: str,
+    store_name: str,
+    already_have: list[str] | None = None,
+    extra_ingredients: list[str] | None = None,
+    excluded_ingredients: list[str] | None = None,
+    allergies: list[str] | None = None,
+) -> dict:
+    """Collect everything the agent needs to reason: recipe, inventory matches, gaps, substitutes.
+    already_have: owned, excluded entirely.
+    extra_ingredients: user-added items not in the base recipe, treated as essential.
+    excluded_ingredients: user removed these from the base recipe outright.
+    allergies: if a recipe ingredient matches an allergy, it is force-treated as missing so a
+    substitute gets found automatically, even if the store actually stocks the allergen.
+    """
+    already_have_lower = {a.strip().lower() for a in (already_have or [])}
+    excluded_lower = {a.strip().lower() for a in (excluded_ingredients or [])}
+    allergy_triggered_ingredients = ingredients_triggered_by_allergies(allergies or [])
+
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -28,12 +68,26 @@ def gather_context(recipe_name: str, store_name: str) -> dict:
                 raise ValueError(f"Recipe not found: {recipe_name}")
 
             recipe = {"name": rows[0][1], "description": rows[0][2], "ingredients": []}
+            skipped_owned = []
+            skipped_excluded = []
+            flagged_allergy = []
             for _, _, _, ing_id, ing_name, qty, essential in rows:
+                name_lower = ing_name.strip().lower()
+                if name_lower in already_have_lower:
+                    skipped_owned.append(ing_name)
+                    continue
+                if name_lower in excluded_lower:
+                    skipped_excluded.append(ing_name)
+                    continue
+                is_allergy_flagged = name_lower in allergy_triggered_ingredients
+                if is_allergy_flagged:
+                    flagged_allergy.append(ing_name)
                 recipe["ingredients"].append({
                     "id": str(ing_id),
                     "name": ing_name,
                     "quantity": qty,
                     "essential": essential,
+                    "allergy_flagged": is_allergy_flagged,
                 })
 
             cur.execute(
@@ -52,7 +106,7 @@ def gather_context(recipe_name: str, store_name: str) -> dict:
             available, missing = [], []
             for ing in recipe["ingredients"]:
                 stock = inventory.get(ing["name"])
-                if stock and stock["in_stock"]:
+                if stock and stock["in_stock"] and not ing["allergy_flagged"]:
                     available.append({**ing, **stock})
                 else:
                     cur.execute(
@@ -99,11 +153,61 @@ def gather_context(recipe_name: str, store_name: str) -> dict:
                         "unit": unit,
                     })
 
+            extra_available, extra_missing = [], []
+            if extra_ingredients:
+                for extra_name in extra_ingredients:
+                    cur.execute(
+                        "SELECT id FROM ingredients WHERE lower(name) = lower(%s);",
+                        (extra_name.strip(),),
+                    )
+                    row = cur.fetchone()
+                    if not row:
+                        continue
+                    extra_id = row[0]
+                    extra_name_lower = extra_name.strip().lower()
+                    extra_allergy_flagged = extra_name_lower in allergy_triggered_ingredients
+                    if extra_allergy_flagged:
+                        flagged_allergy.append(extra_name)
+                    stock = inventory.get(extra_name_lower) or inventory.get(extra_name.strip())
+                    if stock and stock["in_stock"] and not extra_allergy_flagged:
+                        extra_available.append({
+                            "id": str(extra_id), "name": extra_name, "quantity": "as needed",
+                            "essential": True, **stock,
+                        })
+                    else:
+                        cur.execute(
+                            """
+                            SELECT s2.name, sub.quality_score, sub.notes
+                            FROM substitutions sub
+                            JOIN ingredients o ON o.id = sub.original_id
+                            JOIN ingredients s2 ON s2.id = sub.substitute_id
+                            WHERE lower(o.name) = lower(%s)
+                            ORDER BY sub.quality_score DESC;
+                            """,
+                            (extra_name.strip(),),
+                        )
+                        subs = []
+                        for sub_name, score, notes in cur.fetchall():
+                            sub_stock = inventory.get(sub_name)
+                            subs.append({
+                                "name": sub_name, "quality_score": score, "notes": notes,
+                                "at_this_store": bool(sub_stock and sub_stock["in_stock"]),
+                                "price": sub_stock["price"] if sub_stock else None,
+                                "unit": sub_stock["unit"] if sub_stock else None,
+                            })
+                        extra_missing.append({
+                            "id": str(extra_id), "name": extra_name, "quantity": "as needed",
+                            "essential": True, "substitutes": subs,
+                        })
+
             return {
                 "recipe": recipe,
                 "store": store_name,
-                "available_here": available,
-                "missing_here": missing,
+                "already_have": skipped_owned,
+                "excluded_by_user": skipped_excluded,
+                "allergy_substitutions_applied": list(dict.fromkeys(flagged_allergy)),
+                "available_here": available + extra_available,
+                "missing_here": missing + extra_missing,
                 "other_store_options": other_store_options,
             }
 

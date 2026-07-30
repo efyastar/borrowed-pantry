@@ -22,6 +22,7 @@ class ChatRequest(BaseModel):
     name: str
     message: str
     conversation_id: str | None = None
+    already_have: list[str] = []
 
 
 class ChatResponse(BaseModel):
@@ -29,6 +30,57 @@ class ChatResponse(BaseModel):
     conversation_id: str
     user_id: str
 
+class PlanRequest(BaseModel):
+    email: str
+    name: str
+    recipe: str
+    store: str
+    budget: float
+    already_have: list[str] = []
+    extra_ingredients: list[str] = []
+    excluded_ingredients: list[str] = []
+
+
+@app.post("/plan")
+def get_plan(req: PlanRequest):
+    from agent import gather_context, compute_estimated_basket, fit_basket_to_budget
+
+    user_id = get_or_create_user(req.email, req.name)
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT dietary_restrictions FROM users WHERE id = %s;", (user_id,))
+            row = cur.fetchone()
+            allergies = row[0] if row and row[0] else []
+
+    try:
+        context = gather_context(
+            req.recipe, req.store,
+            already_have=req.already_have,
+            extra_ingredients=req.extra_ingredients,
+            excluded_ingredients=req.excluded_ingredients,
+            allergies=allergies,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    basket = compute_estimated_basket(context)
+    fitted = fit_basket_to_budget(basket, req.budget)
+
+    return {
+        "recipe": context["recipe"]["name"],
+        "store": req.store,
+        "already_have": context["already_have"],
+        "excluded_by_user": context["excluded_by_user"],
+        "allergy_substitutions_applied": context["allergy_substitutions_applied"],
+        "final_items": fitted["final_items"],
+        "final_total": fitted["final_total"],
+        "removed_optional": fitted["removed_optional"],
+        "fits_budget": fitted["fits_budget"],
+        "over_by": fitted["over_by"],
+        "unavailable_essentials": basket["unavailable_essentials"],
+        "other_store_options": context["other_store_options"],
+    }
 
 class ProfileRequest(BaseModel):
     email: str
@@ -51,7 +103,7 @@ def chat(req: ChatRequest):
         conversation_id = start_conversation(user_id, req.message[:60])
 
     save_message(conversation_id, "user", req.message)
-    reply = agent_reply(user_id, conversation_id, req.message)
+    reply = agent_reply(user_id, conversation_id, req.message, already_have=req.already_have)
     save_message(conversation_id, "assistant", reply)
 
     extract_facts(user_id, conversation_id, req.message, reply)
@@ -105,11 +157,15 @@ def upsert_profile(req: ProfileRequest):
 def list_stores():
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, name, chain, address, lat, lng, store_type FROM stores;")
+            cur.execute(
+                """SELECT id, name, chain, address, lat, lng, store_type,
+                          on_ubereats, on_doordash FROM stores;"""
+            )
             return [
                 {
                     "id": str(r[0]), "name": r[1], "chain": r[2],
                     "address": r[3], "lat": r[4], "lng": r[5], "store_type": r[6],
+                    "on_ubereats": r[7], "on_doordash": r[8],
                 }
                 for r in cur.fetchall()
             ]
@@ -130,6 +186,22 @@ def list_recipes():
                 for r in cur.fetchall()
             ]
 
+@app.get("/recipes/{recipe_id}/ingredients")
+def get_recipe_ingredients(recipe_id: str):
+    """List a recipe's ingredients, used to populate the checklist and review dropdown."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT i.id, i.name
+                FROM recipe_ingredients ri
+                JOIN ingredients i ON i.id = ri.ingredient_id
+                WHERE ri.recipe_id = %s
+                ORDER BY i.name;
+                """,
+                (recipe_id,),
+            )
+            return [{"id": str(r[0]), "name": r[1]} for r in cur.fetchall()]
 
 class CookedRequest(BaseModel):
     user_id: str

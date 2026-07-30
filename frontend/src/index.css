@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
   --ink: #241A12;
@@ -9,9 +9,9 @@
   --sage: #5C6B3F;
   --surface: #F5F0E6;
 
-  --font-display: 'Fraunces', serif;
-  --font-body: 'Work Sans', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-mono: 'Space Mono', monospace;
 }
 
 * {
@@ -24,6 +24,7 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #root {

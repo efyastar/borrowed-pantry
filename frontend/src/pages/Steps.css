@@ -1,0 +1,36 @@
+.steps-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.video-link {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  align-self: flex-start;
+}
+
+.steps-loading {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--secondary);
+}
+
+.steps-text {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink);
+  white-space: pre-wrap;
+}

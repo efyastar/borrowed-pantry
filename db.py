@@ -97,11 +97,32 @@ SCHEMA_STATEMENTS = [
         notes STRING,
         cooked_at TIMESTAMPTZ DEFAULT now()
     );""",
+    """CREATE TABLE IF NOT EXISTS user_favorite_recipes (
+        user_id UUID REFERENCES users(id),
+        recipe_id UUID REFERENCES recipes(id),
+        created_at TIMESTAMPTZ DEFAULT now(),
+        PRIMARY KEY (user_id, recipe_id)
+    );""",
+    """CREATE TABLE IF NOT EXISTS substitution_reviews (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        original_id UUID REFERENCES ingredients(id),
+        substitute_name STRING NOT NULL,
+        quality_score INT CHECK (quality_score BETWEEN 1 AND 5),
+        notes STRING,
+        user_id UUID REFERENCES users(id),
+        recipe_id UUID REFERENCES recipes(id),
+        created_at TIMESTAMPTZ DEFAULT now()
+    );""",
 ]
 
 VECTOR_INDEX_STATEMENTS = [
     "CREATE VECTOR INDEX ON ingredients (embedding);",
     "CREATE VECTOR INDEX ON recipes (embedding);",
+]
+
+ALTER_STATEMENTS = [
+    "ALTER TABLE stores ADD COLUMN IF NOT EXISTS on_ubereats BOOL DEFAULT false;",
+    "ALTER TABLE stores ADD COLUMN IF NOT EXISTS on_doordash BOOL DEFAULT false;",
 ]
 
 
@@ -125,8 +146,16 @@ def run_schema():
                     conn.commit()
                     print(f"  OK: vector index: {stmt[:50]}...")
                 except Exception as e:
-                    # Already exists is fine on re-run
                     print(f"  SKIP/FAIL: vector index: {e}")
+                    conn.rollback()
+
+            for stmt in ALTER_STATEMENTS:
+                try:
+                    cur.execute(stmt)
+                    conn.commit()
+                    print(f"  OK: {stmt[:60]}...")
+                except Exception as e:
+                    print(f"  SKIP/FAIL: {stmt[:60]}: {e}")
                     conn.rollback()
 
 

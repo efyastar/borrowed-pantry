@@ -24,7 +24,7 @@ def get_catalog_summary() -> str:
     return f"Known recipes: {', '.join(recipes)}. Known stores: {', '.join(stores)}."
 
 
-def agent_reply(user_id: str, conversation_id: str, user_msg: str) -> str:
+def agent_reply(user_id: str, conversation_id: str, user_msg: str, already_have: list[str] | None = None) -> str:
     """One full agent turn: load memory, decide if recipe planning is needed, respond."""
     facts = get_user_facts(user_id)
     history = get_conversation_history(conversation_id)
@@ -81,7 +81,7 @@ def agent_reply(user_id: str, conversation_id: str, user_msg: str) -> str:
                         budget = float(match.group(1))
                         break
 
-            context = gather_context(routing["recipe"], routing["store"])
+            context = gather_context(routing["recipe"], routing["store"], already_have=already_have)
             basket = compute_estimated_basket(context)
             fitted = fit_basket_to_budget(basket, budget)
             context_block = (

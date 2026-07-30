@@ -4,6 +4,14 @@
   gap: 16px;
 }
 
+.page-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
 .page-subtitle {
   font-family: var(--font-body);
   font-size: 14px;
@@ -14,17 +22,23 @@
 .recipe-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .recipe-card {
+  text-align: left;
   background: var(--surface);
-  border: 1px solid var(--secondary);
-  border-radius: 6px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.recipe-card-selected {
+  border-width: 2px;
 }
 
 .recipe-card-top {
@@ -34,18 +48,17 @@
 }
 
 .recipe-name {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 600;
-  font-size: 18px;
+  font-size: 17px;
   color: var(--ink);
 }
 
 .recipe-cuisine {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--amber);
+  color: var(--secondary);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .recipe-description {
@@ -56,31 +69,59 @@
   line-height: 1.5;
 }
 
-.recipe-card-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.recipe-time {
   font-family: var(--font-mono);
   font-size: 12px;
+  color: var(--ink);
+}
+
+.budget-block {
+  border-top: 1px solid var(--ink);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.budget-label {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
   color: var(--secondary);
 }
 
-.recipe-video-link {
-  color: var(--primary);
-  text-decoration: none;
-  font-family: var(--font-body);
-  font-weight: 500;
+.budget-input-row {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
-.recipe-plan-button {
-  align-self: flex-start;
-  margin-top: 4px;
-  padding: 10px 18px;
+.budget-currency {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  padding: 0 0 0 14px;
+  color: var(--ink);
+}
+
+.budget-input-row input {
+  flex: 1;
+  border: none;
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.continue-button {
+  padding: 13px 20px;
   border: none;
   border-radius: 4px;
-  background: var(--primary);
+  background: var(--ink);
   color: var(--surface);
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
 }

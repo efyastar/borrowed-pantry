@@ -1,0 +1,73 @@
+.shopping-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--secondary);
+  margin: -12px 0 0;
+}
+
+.shopping-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.shopping-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--secondary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.shopping-row input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.shopping-item-name {
+  flex: 1;
+}
+
+.shopping-item-price {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.shopping-row-checked .shopping-item-name {
+  text-decoration: line-through;
+  color: var(--secondary);
+}
+
+.continue-button {
+  padding: 13px 20px;
+  border: none;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--surface);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.continue-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

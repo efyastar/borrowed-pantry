@@ -28,12 +28,18 @@ function Chat() {
     if (pendingRecipe) {
       hasAutoSent.current = true;
       localStorage.removeItem('borrowed_pantry_pending_recipe');
+
+      const alreadyHaveRaw = localStorage.getItem('borrowed_pantry_already_have');
+      localStorage.removeItem('borrowed_pantry_already_have');
+      const alreadyHave = alreadyHaveRaw ? JSON.parse(alreadyHaveRaw) : [];
+
       const storeText = selectedStore ? ` at ${selectedStore}` : '';
-      sendMessage(`I want to make ${pendingRecipe}${storeText}`);
+      const haveText = alreadyHave.length ? ` I already have: ${alreadyHave.join(', ')}.` : '';
+      sendMessage(`I want to make ${pendingRecipe}${storeText}.${haveText}`, alreadyHave);
     }
   }, [user]);
 
-  const sendMessage = async (text) => {
+  const sendMessage = async (text, alreadyHave = []) => {
     if (!text.trim() || !user) return;
 
     setMessages((prev) => [...prev, { role: 'user', content: text }]);
@@ -45,6 +51,7 @@ function Chat() {
         name: user.name,
         message: text,
         conversation_id: conversationId,
+        already_have: alreadyHave,
       });
       setMessages((prev) => [...prev, { role: 'assistant', content: res.data.reply }]);
       if (!conversationId) {
@@ -81,7 +88,7 @@ function Chat() {
       <div className="chat-thread">
         {messages.length === 0 && !loading && (
           <p className="chat-empty">
-            Tell me what you're craving, and where you're shopping.
+            Name the dish. Name the store. We'll handle the rest.
           </p>
         )}
 

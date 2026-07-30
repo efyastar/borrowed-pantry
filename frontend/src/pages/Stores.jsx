@@ -59,17 +59,16 @@ function Stores() {
   return (
     <div className="stores-page">
       <h2 className="page-title">Stores</h2>
+      <p className="page-subtitle">Closest first. Always your call.</p>
 
       {locationStatus === 'denied' && (
-        <p className="location-note">
-          Location access was denied, so distances aren't shown. You can still browse and pick a store below.
-        </p>
+        <p className="location-note">No location, no problem. Just pick one.</p>
       )}
       {locationStatus === 'unsupported' && (
-        <p className="location-note">Your browser doesn't support location. Distances aren't shown.</p>
+        <p className="location-note">Can't read your location here. Pick manually.</p>
       )}
       {locationStatus === 'locating' && (
-        <p className="location-note">Finding stores near you...</p>
+        <p className="location-note">Finding what's close...</p>
       )}
 
       <div className="store-list">
@@ -83,13 +82,20 @@ function Stores() {
           >
             <div className="store-card-top">
               <span className="store-name">{store.name}</span>
-              {store.store_type === 'african' && <span className="badge badge-african">African</span>}
+              {store.distance !== null && store.distance !== undefined && (
+                <span className="store-distance">{store.distance.toFixed(1)} mi</span>
+              )}
             </div>
             <p className="store-address">{store.address}</p>
-            {store.distance !== null && store.distance !== undefined && (
-              <p className="store-distance">{store.distance.toFixed(1)} mi away</p>
-            )}
-            {selectedStore === store.name && <span className="selected-tag">Selected for shopping</span>}
+            <div className="store-tags">
+              {store.store_type === 'african' && <span className="tag">African market</span>}
+              {store.on_ubereats && <span className="tag">Uber Eats</span>}
+              {store.on_doordash && <span className="tag">DoorDash</span>}
+              {!store.on_ubereats && !store.on_doordash && (
+                <span className="tag tag-muted">Pickup only</span>
+              )}
+            </div>
+            {selectedStore === store.name && <span className="selected-tag">This one</span>}
           </button>
         ))}
       </div>

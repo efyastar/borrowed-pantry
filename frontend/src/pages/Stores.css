@@ -12,11 +12,17 @@
   margin: 0;
 }
 
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--secondary);
+  margin: -8px 0 0;
+}
+
 .location-note {
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--secondary);
-  font-style: italic;
   margin: 0;
 }
 
@@ -29,23 +35,22 @@
 .store-card {
   text-align: left;
   background: var(--surface);
-  border: 1px solid var(--secondary);
-  border-radius: 6px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
 }
 
 .store-card-selected {
-  border-color: var(--primary);
   border-width: 2px;
 }
 
 .store-card-top {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
 }
 
@@ -56,16 +61,10 @@
   color: var(--ink);
 }
 
-.badge {
+.store-distance {
   font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 10px;
-}
-
-.badge-african {
-  background: var(--sage);
-  color: var(--surface);
+  font-size: 13px;
+  color: var(--ink);
 }
 
 .store-address {
@@ -75,17 +74,31 @@
   margin: 0;
 }
 
-.store-distance {
+.store-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.tag {
   font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--amber);
-  margin: 0;
+  font-size: 11px;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  padding: 2px 8px;
+}
+
+.tag-muted {
+  color: var(--secondary);
+  border-color: var(--secondary);
 }
 
 .selected-tag {
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--ink);
   margin-top: 4px;
 }
