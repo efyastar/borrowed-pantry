@@ -127,6 +127,8 @@ ALTER_STATEMENTS = [
     "ALTER TABLE store_inventory ADD COLUMN IF NOT EXISTS is_estimated BOOL DEFAULT false;",
     "CREATE UNIQUE INDEX IF NOT EXISTS stores_name_unique ON stores (name);",
     "CREATE UNIQUE INDEX IF NOT EXISTS recipes_name_unique ON recipes (name);",
+    "ALTER TABLE cooked_history ADD COLUMN IF NOT EXISTS basket JSONB;",
+    "ALTER TABLE cooked_history ADD COLUMN IF NOT EXISTS total DECIMAL(8,2);",
 ]
 
 

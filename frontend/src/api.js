@@ -14,4 +14,5 @@ export const api = {
   logCooked: (data) => client.post('/cooked', data),
   getRecipeIngredients: (recipeId) => client.get(`/recipes/${recipeId}/ingredients`),
   getPlan: (data) => client.post('/plan', data),
+  resolveDish: (dish) => client.post('/dish', { dish }),
 };

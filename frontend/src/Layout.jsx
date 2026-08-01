@@ -4,10 +4,10 @@ import { useUser } from './UserContext';
 import './Layout.css';
 
 const NAV_ITEMS = [
-  { to: '/stores', label: 'Stores' },
-  { to: '/cook', label: 'Cook Something' },
+  { to: '/eat', label: 'Start a dish' },
+  { to: '/history', label: 'Already Cooked' },
   { to: '/chat', label: 'Chat' },
-  { to: '/history', label: 'History' },
+  { to: '/profile', label: 'Your Details' },
 ];
 
 function Layout() {
@@ -29,7 +29,7 @@ function Layout() {
           <span></span>
           <span></span>
         </button>
-        <span className="topbar-title">The Borrowed Pantry</span>
+        <NavLink to="/history" className="topbar-title">The Borrowed Pantry</NavLink>
       </header>
 
       {menuOpen && <div className="drawer-backdrop" onClick={() => setMenuOpen(false)} />}

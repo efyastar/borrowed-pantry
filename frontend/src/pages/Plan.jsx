@@ -74,8 +74,11 @@ function Plan() {
       <div className="basket-list">
         {plan.final_items.map((item, i) => (
           <div key={i} className="basket-row">
-            <span className="basket-item-name">{item.using}</span>
-            <span className="basket-item-price">${item.price.toFixed(2)}</span>
+            <div className="basket-row-top">
+              <span className="basket-item-name">{item.using}</span>
+              <span className="basket-item-price">${item.price.toFixed(2)}</span>
+            </div>
+            {item.reason && <p className="basket-item-reason">{item.reason}</p>}
           </div>
         ))}
       </div>

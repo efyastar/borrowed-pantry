@@ -203,21 +203,57 @@ def get_recipe_ingredients(recipe_id: str):
             )
             return [{"id": str(r[0]), "name": r[1]} for r in cur.fetchall()]
 
+class DishRequest(BaseModel):
+    dish: str
+
+
+@app.post("/dish")
+def resolve_dish(req: DishRequest):
+    """Find a dish by name, generating and saving it if we do not know it yet."""
+    from recipe_generator import ensure_recipe_exists
+
+    try:
+        canonical_name = ensure_recipe_exists(req.dish)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not work out that dish: {e}")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, name, cuisine, description, video_url, est_time_minutes, is_generated
+                   FROM recipes WHERE name = %s;""",
+                (canonical_name,),
+            )
+            row = cur.fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Dish could not be created")
+            return {
+                "id": str(row[0]), "name": row[1], "cuisine": row[2],
+                "description": row[3], "video_url": row[4],
+                "est_time_minutes": row[5], "is_generated": row[6],
+            }
+
 class CookedRequest(BaseModel):
     user_id: str
     recipe_id: str
     store_name: str | None = None
     notes: str | None = None
+    basket: list[dict] = []
+    total: float | None = None
 
 
 @app.post("/cooked")
 def log_cooked(req: CookedRequest):
+    import json as _json
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                """INSERT INTO cooked_history (user_id, recipe_id, store_name, notes)
-                   VALUES (%s, %s, %s, %s);""",
-                (req.user_id, req.recipe_id, req.store_name, req.notes),
+                """INSERT INTO cooked_history (user_id, recipe_id, store_name, notes, basket, total)
+                   VALUES (%s, %s, %s, %s, %s, %s);""",
+                (
+                    req.user_id, req.recipe_id, req.store_name, req.notes,
+                    _json.dumps(req.basket), req.total,
+                ),
             )
             conn.commit()
     return {"status": "logged"}
@@ -229,7 +265,8 @@ def get_cooked_history(user_id: str):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT ch.id, r.name, ch.store_name, ch.notes, ch.cooked_at
+                SELECT ch.id, r.name, ch.store_name, ch.notes, ch.cooked_at,
+                       ch.basket, ch.total, r.video_url, r.cuisine, r.est_time_minutes
                 FROM cooked_history ch
                 JOIN recipes r ON r.id = ch.recipe_id
                 WHERE ch.user_id = %s
@@ -241,6 +278,8 @@ def get_cooked_history(user_id: str):
                 {
                     "id": str(r[0]), "recipe_name": r[1], "store_name": r[2],
                     "notes": r[3], "cooked_at": str(r[4]),
+                    "basket": r[5] or [], "total": float(r[6]) if r[6] is not None else None,
+                    "video_url": r[7], "cuisine": r[8], "est_time_minutes": r[9],
                 }
                 for r in cur.fetchall()
             ]

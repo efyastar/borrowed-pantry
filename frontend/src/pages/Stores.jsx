@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { distanceMiles } from '../utils/geo';
 import './Stores.css';
@@ -11,6 +12,7 @@ function Stores() {
   const [selectedStore, setSelectedStore] = useState(
     localStorage.getItem('borrowed_pantry_selected_store') || null
   );
+  const navigate = useNavigate();
 
   useEffect(() => {
     api
@@ -51,6 +53,7 @@ function Stores() {
   const handleSelect = (store) => {
     setSelectedStore(store.name);
     localStorage.setItem('borrowed_pantry_selected_store', store.name);
+    navigate('/have');
   };
 
   if (loading) return <div className="stores-page">Loading stores...</div>;

@@ -26,12 +26,26 @@
 }
 
 .basket-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
+  padding: 10px 0;
   font-family: var(--font-body);
   font-size: 15px;
   color: var(--ink);
+}
+
+.basket-row-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.basket-item-reason {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--secondary);
+  margin: 6px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--secondary);
 }
 
 .basket-item-price {
