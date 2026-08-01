@@ -116,7 +116,7 @@ def gather_context(
                         JOIN ingredients o ON o.id = sub.original_id
                         JOIN ingredients s2 ON s2.id = sub.substitute_id
                         WHERE o.name = %s
-                        ORDER BY sub.quality_score DESC;
+                        ORDER BY s2.name;
                         """,
                         (ing["name"],),
                     )
@@ -182,7 +182,7 @@ def gather_context(
                             JOIN ingredients o ON o.id = sub.original_id
                             JOIN ingredients s2 ON s2.id = sub.substitute_id
                             WHERE lower(o.name) = lower(%s)
-                            ORDER BY sub.quality_score DESC;
+                            ORDER BY s2.name;
                             """,
                             (extra_name.strip(),),
                         )
@@ -231,12 +231,13 @@ def compute_estimated_basket(context: dict) -> dict:
 
     for item in context["missing_here"]:
         in_store_subs = [s for s in item["substitutes"] if s["at_this_store"] and s["price"] is not None]
-        best_sub = max(in_store_subs, key=lambda s: s["quality_score"]) if in_store_subs else None
+        best_sub = in_store_subs[0] if in_store_subs else None
 
         if best_sub:
             line_items.append({
                 "ingredient": item["name"],
-                "using": f"{best_sub['name']} (substitute, quality {best_sub['quality_score']}/5)",
+                "using": f"{best_sub['name']} (instead of {item['name']})",
+                "reason": best_sub["notes"],
                 "price": best_sub["price"],
                 "essential": item["essential"],
             })

@@ -123,6 +123,10 @@ VECTOR_INDEX_STATEMENTS = [
 ALTER_STATEMENTS = [
     "ALTER TABLE stores ADD COLUMN IF NOT EXISTS on_ubereats BOOL DEFAULT false;",
     "ALTER TABLE stores ADD COLUMN IF NOT EXISTS on_doordash BOOL DEFAULT false;",
+    "ALTER TABLE recipes ADD COLUMN IF NOT EXISTS is_generated BOOL DEFAULT false;",
+    "ALTER TABLE store_inventory ADD COLUMN IF NOT EXISTS is_estimated BOOL DEFAULT false;",
+    "CREATE UNIQUE INDEX IF NOT EXISTS stores_name_unique ON stores (name);",
+    "CREATE UNIQUE INDEX IF NOT EXISTS recipes_name_unique ON recipes (name);",
 ]
 
 
