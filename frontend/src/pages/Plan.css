@@ -112,3 +112,9 @@
   font-size: 15px;
   margin-top: 8px;
 }
+
+.reason-source {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--secondary);
+}

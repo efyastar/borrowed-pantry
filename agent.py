@@ -176,25 +176,58 @@ def gather_context(
                         })
                     else:
                         cur.execute(
-                            """
-                            SELECT s2.name, sub.quality_score, sub.notes
-                            FROM substitutions sub
-                            JOIN ingredients o ON o.id = sub.original_id
-                            JOIN ingredients s2 ON s2.id = sub.substitute_id
-                            WHERE lower(o.name) = lower(%s)
-                            ORDER BY s2.name;
-                            """,
-                            (extra_name.strip(),),
-                        )
-                        subs = []
-                        for sub_name, score, notes in cur.fetchall():
-                            sub_stock = inventory.get(sub_name)
-                            subs.append({
-                                "name": sub_name, "quality_score": score, "notes": notes,
-                                "at_this_store": bool(sub_stock and sub_stock["in_stock"]),
-                                "price": sub_stock["price"] if sub_stock else None,
-                                "unit": sub_stock["unit"] if sub_stock else None,
-                            })
+                        """
+                        SELECT s2.name, sub.quality_score, sub.notes
+                        FROM substitutions sub
+                        JOIN ingredients o ON o.id = sub.original_id
+                        JOIN ingredients s2 ON s2.id = sub.substitute_id
+                        WHERE o.name = %s
+                        ORDER BY s2.name;
+                        """,
+                        (ing["name"],),
+                    )
+                    subs = []
+                    seen_subs = set()
+                    for sub_name, score, notes in cur.fetchall():
+                        sub_stock = inventory.get(sub_name)
+                        seen_subs.add(sub_name.lower())
+                        subs.append({
+                            "name": sub_name,
+                            "quality_score": score,
+                            "notes": notes,
+                            "source": "curated",
+                            "at_this_store": bool(sub_stock and sub_stock["in_stock"]),
+                            "price": sub_stock["price"] if sub_stock else None,
+                            "unit": sub_stock["unit"] if sub_stock else None,
+                        })
+
+                    # Community tips: what other people found that worked
+                    cur.execute(
+                        """
+                        SELECT sr.substitute_name, sr.notes, u.display_name
+                        FROM substitution_reviews sr
+                        JOIN ingredients o ON o.id = sr.original_id
+                        LEFT JOIN users u ON u.id = sr.user_id
+                        WHERE o.name = %s
+                        ORDER BY sr.created_at DESC;
+                        """,
+                        (ing["name"],),
+                    )
+                    for sub_name, notes, author in cur.fetchall():
+                        if sub_name.lower() in seen_subs:
+                            continue
+                        seen_subs.add(sub_name.lower())
+                        sub_stock = inventory.get(sub_name.lower()) or inventory.get(sub_name)
+                        subs.append({
+                            "name": sub_name,
+                            "quality_score": None,
+                            "notes": notes,
+                            "source": "community",
+                            "author": author or "Someone",
+                            "at_this_store": bool(sub_stock and sub_stock["in_stock"]),
+                            "price": sub_stock["price"] if sub_stock else None,
+                            "unit": sub_stock["unit"] if sub_stock else None,
+                        })
                         extra_missing.append({
                             "id": str(extra_id), "name": extra_name, "quantity": "as needed",
                             "essential": True, "substitutes": subs,
@@ -238,6 +271,8 @@ def compute_estimated_basket(context: dict) -> dict:
                 "ingredient": item["name"],
                 "using": f"{best_sub['name']} (instead of {item['name']})",
                 "reason": best_sub["notes"],
+                "source": best_sub.get("source", "curated"),
+                "author": best_sub.get("author"),
                 "price": best_sub["price"],
                 "essential": item["essential"],
             })

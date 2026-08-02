@@ -283,3 +283,73 @@ def get_cooked_history(user_id: str):
                 }
                 for r in cur.fetchall()
             ]
+
+class ReviewRequest(BaseModel):
+    user_id: str
+    original_ingredient_id: str
+    substitute_name: str
+    notes: str
+    recipe_id: str | None = None
+
+
+@app.post("/reviews")
+def submit_review(req: ReviewRequest):
+    if not req.notes.strip():
+        raise HTTPException(status_code=400, detail="Tell us why it works")
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO substitution_reviews
+                    (original_id, substitute_name, quality_score, notes, user_id, recipe_id)
+                VALUES (%s, %s, 3, %s, %s, %s)
+                RETURNING id;
+                """,
+                (
+                    req.original_ingredient_id, req.substitute_name,
+                    req.notes, req.user_id, req.recipe_id,
+                ),
+            )
+            review_id = str(cur.fetchone()[0])
+            conn.commit()
+            return {"id": review_id}
+
+
+@app.get("/community")
+def list_community_tips(limit: int = 50):
+    """All substitution tips shared by users, newest first."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT sr.id, i.name, sr.substitute_name, sr.notes,
+                       u.display_name, r.name, sr.created_at
+                FROM substitution_reviews sr
+                JOIN ingredients i ON i.id = sr.original_id
+                LEFT JOIN users u ON u.id = sr.user_id
+                LEFT JOIN recipes r ON r.id = sr.recipe_id
+                ORDER BY sr.created_at DESC
+                LIMIT %s;
+                """,
+                (limit,),
+            )
+            return [
+                {
+                    "id": str(r[0]), "original": r[1], "substitute": r[2],
+                    "notes": r[3], "author": r[4] or "Someone",
+                    "recipe_name": r[5], "created_at": str(r[6]),
+                }
+                for r in cur.fetchall()
+            ]
+
+
+@app.get("/ingredients/search")
+def search_ingredients(q: str = "", limit: int = 20):
+    """Simple name search, used to pick which ingredient a tip is about."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, name FROM ingredients WHERE name ILIKE %s ORDER BY name LIMIT %s;",
+                (f"%{q}%", limit),
+            )
+            return [{"id": str(r[0]), "name": r[1]} for r in cur.fetchall()]

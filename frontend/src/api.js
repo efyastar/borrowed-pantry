@@ -15,4 +15,7 @@ export const api = {
   getRecipeIngredients: (recipeId) => client.get(`/recipes/${recipeId}/ingredients`),
   getPlan: (data) => client.post('/plan', data),
   resolveDish: (dish) => client.post('/dish', { dish }),
+  listCommunityTips: () => client.get('/community'),
+  searchIngredients: (q) => client.get(`/ingredients/search?q=${encodeURIComponent(q)}`),
+  submitTip: (data) => client.post('/reviews', data),
 };

@@ -5,6 +5,7 @@ import './Layout.css';
 
 const NAV_ITEMS = [
   { to: '/eat', label: 'Start a dish' },
+  { to: '/community', label: 'Community' },
   { to: '/history', label: 'Already Cooked' },
   { to: '/chat', label: 'Chat' },
   { to: '/profile', label: 'Your Details' },

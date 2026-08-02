@@ -11,6 +11,7 @@ import History from './pages/History';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import { useUser } from './UserContext';
+import Community from './pages/Community';
 
 function App() {
   const { user } = useUser();
@@ -29,6 +30,7 @@ function App() {
         <Route path="/history" element={<History />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/community" element={<Community />} />
       </Route>
     </Routes>
   );

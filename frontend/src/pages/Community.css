@@ -1,0 +1,165 @@
+.community-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--secondary);
+  margin: -10px 0 0;
+}
+
+.add-tip-button {
+  align-self: flex-start;
+  padding: 11px 18px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tip-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  padding: 16px;
+  background: var(--surface);
+}
+
+.tip-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+.tip-form input,
+.tip-form textarea,
+.tip-form select {
+  padding: 10px 12px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--base);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  resize: vertical;
+}
+
+.match-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -6px;
+}
+
+.match-item {
+  padding: 5px 10px;
+  border: 1px solid var(--secondary);
+  border-radius: 20px;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.tip-form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.tip-form-actions button[type="submit"] {
+  padding: 11px 18px;
+  border: none;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--surface);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tip-form-actions button[type="submit"]:disabled {
+  opacity: 0.4;
+}
+
+.cancel-button {
+  padding: 11px 18px;
+  border: 1px solid var(--secondary);
+  border-radius: 4px;
+  background: none;
+  color: var(--secondary);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+
+.community-loading,
+.community-empty {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--secondary);
+  font-size: 15px;
+}
+
+.tip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tip-card {
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  padding: 14px 16px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tip-swap {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.tip-arrow {
+  font-weight: 400;
+  color: var(--secondary);
+  font-size: 14px;
+}
+
+.tip-notes {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+}
+
+.tip-author {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--secondary);
+  margin: 0;
+}

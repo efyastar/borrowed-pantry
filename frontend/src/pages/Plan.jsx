@@ -78,7 +78,14 @@ function Plan() {
               <span className="basket-item-name">{item.using}</span>
               <span className="basket-item-price">${item.price.toFixed(2)}</span>
             </div>
-            {item.reason && <p className="basket-item-reason">{item.reason}</p>}
+            {item.reason && (
+              <p className="basket-item-reason">
+                {item.reason}
+                {item.source === 'community' && (
+                  <span className="reason-source"> — shared by {item.author}</span>
+                )}
+              </p>
+            )}
           </div>
         ))}
       </div>
