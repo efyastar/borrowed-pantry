@@ -115,9 +115,12 @@ SCHEMA_STATEMENTS = [
     );""",
 ]
 
+# Vector indexes are created once, by name, so re-running this file cannot
+# stack up duplicates. CockroachDB auto-names unnamed indexes, which is how
+# seven copies of each accumulated across earlier runs.
 VECTOR_INDEX_STATEMENTS = [
-    "CREATE VECTOR INDEX ON ingredients (embedding);",
-    "CREATE VECTOR INDEX ON recipes (embedding);",
+    "CREATE VECTOR INDEX IF NOT EXISTS ingredients_embedding_idx ON ingredients (embedding);",
+    "CREATE VECTOR INDEX IF NOT EXISTS recipes_embedding_idx ON recipes (embedding);",
 ]
 
 ALTER_STATEMENTS = [
