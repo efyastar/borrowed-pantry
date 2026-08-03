@@ -140,22 +140,7 @@ message needs a full recipe-and-store data fetch or can be answered conversation
 
 ## Architecture
 
-```
-React (Vite) frontend
-        |
-        v
-FastAPI backend  ──────────────►  Amazon Bedrock
-        |                          ├── Claude Sonnet 4.6 (reasoning, generation, routing)
-        |                          └── Titan Embeddings V2 (1024-dim vectors)
-        v
-CockroachDB Cloud (AWS us-east-1)
-  ├── Vector indexes on ingredients + recipes  (semantic search)
-  ├── Agent memory: conversations, messages, user_facts
-  ├── Knowledge: substitutions, substitution_reviews (community)
-  ├── Catalogue: recipes, ingredients, recipe_ingredients
-  ├── Commerce: stores, store_inventory
-  └── History: cooked_history, user_favorite_recipes
-```
+![Architecture diagram](architecture.png)
 
 ---
 
