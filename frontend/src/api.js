@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = 'http://192.168.1.13:8000';
+const API_BASE = 'https://bm325ycol4ovpkay4pjvv4izoy0wvuza.lambda-url.us-east-2.on.aws';
 
 const client = axios.create({ baseURL: API_BASE });
 

@@ -353,3 +353,8 @@ def search_ingredients(q: str = "", limit: int = 20):
                 (f"%{q}%", limit),
             )
             return [{"id": str(r[0]), "name": r[1]} for r in cur.fetchall()]
+
+from mangum import Mangum
+
+handler = Mangum(app)
+
