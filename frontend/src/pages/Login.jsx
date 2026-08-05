@@ -40,7 +40,7 @@ function Login() {
     try {
       const res = await api.getProfile(email.trim());
       setUser(res.data);
-      navigate('/stores');
+      navigate('/eat');
     } catch (err) {
       if (err.response && err.response.status === 404) {
         setStep('setup');
