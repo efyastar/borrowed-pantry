@@ -81,7 +81,7 @@ function Login() {
   return (
     <div className="login-page">
       <h1 className="login-title">The Borrowed Pantry</h1>
-      <p className="login-tagline">Same soul, different store.</p>
+      <p className="login-tagline">Recipe apps tell you what to cook.<br />We remember what worked.</p>
 
       {step === 'identify' && (
         <form className="login-form" onSubmit={handleIdentify}>
