@@ -70,7 +70,7 @@ function Login() {
         default_budget: budget ? parseFloat(budget) : null,
         dietary_restrictions: restrictions,
       });
-      navigate('/stores');
+      navigate('/eat');
     } catch (err) {
       setError('Something went wrong. Try again.');
     } finally {
