@@ -79,12 +79,12 @@ function Plan() {
               <span className="basket-item-price">${item.price.toFixed(2)}</span>
             </div>
             {item.reason && (
-              <p className="basket-item-reason">
-                {item.reason}
-                {item.source === 'community' && (
-                  <span className="reason-source"> — shared by {item.author}</span>
-                )}
-              </p>
+              <div className="basket-item-reason">
+                <span className={item.source === 'community' ? 'reason-tag reason-tag-community' : 'reason-tag'}>
+                  {item.source === 'community' ? `shared by ${item.author}` : 'verified substitution'}
+                </span>
+                <p className="reason-text">{item.reason}</p>
+              </div>
             )}
           </div>
         ))}

@@ -39,13 +39,35 @@
 }
 
 .basket-item-reason {
+  margin: 8px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--secondary);
+}
+
+.reason-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--secondary);
+  border: 1px solid var(--secondary);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin-bottom: 6px;
+}
+
+.reason-tag-community {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+
+.reason-text {
   font-family: var(--font-body);
   font-size: 13px;
   line-height: 1.5;
   color: var(--secondary);
-  margin: 6px 0 0;
-  padding-left: 12px;
-  border-left: 2px solid var(--secondary);
+  margin: 0;
 }
 
 .basket-item-price {
@@ -111,10 +133,4 @@
   font-weight: 600;
   font-size: 15px;
   margin-top: 8px;
-}
-
-.reason-source {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--secondary);
 }
