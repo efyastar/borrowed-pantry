@@ -18,4 +18,6 @@ export const api = {
   listCommunityTips: () => client.get('/community'),
   searchIngredients: (q) => client.get(`/ingredients/search?q=${encodeURIComponent(q)}`),
   submitTip: (data) => client.post('/reviews', data),
+  storesNearby: (lat, lng) => client.post('/stores/nearby', { lat, lng }),
+  ensureInventory: (storeId) => client.post('/stores/ensure-inventory', { store_id: storeId }),
 };

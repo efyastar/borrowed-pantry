@@ -354,6 +354,53 @@ def search_ingredients(q: str = "", limit: int = 20):
             )
             return [{"id": str(r[0]), "name": r[1]} for r in cur.fetchall()]
 
+
+class NearbyRequest(BaseModel):
+    lat: float
+    lng: float
+
+
+@app.post("/stores/nearby")
+def stores_nearby(req: NearbyRequest):
+    """Find and persist real stores near a location, then return everything we know."""
+    from store_finder import ensure_stores_near
+
+    try:
+        ensure_stores_near(req.lat, req.lng)
+    except Exception as e:
+        print(f"Store lookup failed, falling back to existing stores: {e}")
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT id, name, chain, address, lat, lng, store_type,
+                          on_ubereats, on_doordash FROM stores;"""
+            )
+            return [
+                {
+                    "id": str(r[0]), "name": r[1], "chain": r[2],
+                    "address": r[3], "lat": r[4], "lng": r[5], "store_type": r[6],
+                    "on_ubereats": r[7], "on_doordash": r[8],
+                }
+                for r in cur.fetchall()
+            ]
+
+
+class EnsureInventoryRequest(BaseModel):
+    store_id: str
+
+
+@app.post("/stores/ensure-inventory")
+def ensure_store_inventory(req: EnsureInventoryRequest):
+    """Estimate inventory for a store that does not have any yet."""
+    from inventory_estimator import ensure_inventory
+
+    try:
+        written = ensure_inventory(req.store_id)
+        return {"rows_written": written}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Could not estimate inventory: {e}")
+
 from mangum import Mangum
 
 handler = Mangum(app)
