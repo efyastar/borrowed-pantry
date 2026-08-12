@@ -362,7 +362,7 @@ class NearbyRequest(BaseModel):
 
 @app.post("/stores/nearby")
 def stores_nearby(req: NearbyRequest):
-    """Find and persist real stores near a location, then return everything we know."""
+    """Find and persist real stores near a location, then return only nearby ones."""
     from store_finder import ensure_stores_near
 
     try:
@@ -373,8 +373,24 @@ def stores_nearby(req: NearbyRequest):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                """SELECT id, name, chain, address, lat, lng, store_type,
-                          on_ubereats, on_doordash FROM stores;"""
+                """
+                SELECT id, name, chain, address, lat, lng, store_type,
+                       on_ubereats, on_doordash
+                FROM (
+                    SELECT id, name, chain, address, lat, lng, store_type,
+                           on_ubereats, on_doordash,
+                           ST_DistanceSphere(
+                               ST_MakePoint(lng, lat)::geometry,
+                               ST_MakePoint(%s, %s)::geometry
+                           ) / 1609.34 AS miles
+                    FROM stores
+                    WHERE lat IS NOT NULL AND lng IS NOT NULL
+                ) AS with_distance
+                WHERE miles < 40
+                ORDER BY miles
+                LIMIT 40;
+                """,
+                (req.lng, req.lat),
             )
             return [
                 {
@@ -384,7 +400,6 @@ def stores_nearby(req: NearbyRequest):
                 }
                 for r in cur.fetchall()
             ]
-
 
 class EnsureInventoryRequest(BaseModel):
     store_id: str
